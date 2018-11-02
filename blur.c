@@ -121,6 +121,5 @@ int main (int argc, const char * argv[]) {
 		}
 	}
 	fclose(fout);
-	getchar();
     return 0;
 }
