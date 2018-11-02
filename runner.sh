@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# Remove all compiled programs before starting
+rm blurOMP.out
+
+# How many threads do you want to test from and too?
+tmin=2
+tmax=10
+
+# How many chunks do you want to test from and too?
+cmin=2
+cmax=10
+
+# How many results do you want?
+runs=8
+
+# Static, dynamic, guided, auto?
+# The number is the code that OMP stores in its enum omp_sched_t custom variable type
+# static = 1
+# dynamic = 2
+# guided = 3
+# auto = 4
+sch=static
+
+# Recompile program
+gcc -fopenmp -o blurOMP.out blurOMP.c
+
+# Run programs
+for x in $(seq $tmin $tmax); # For each amount of threads
+do
+  export OMP_NUM_THREADS=$x
+  for y in $(seq $cmin $cmax); # For each compiled file (do by number)
+  do
+    export OMP_SCHEDULE=$sch,$y
+    printf "\nThread count: $x\n"
+    printf "Chunk count: $y\n"
+    for z in $(seq 1 $runs);
+    do
+      ./blurOMP.out
+    done
+  done
+done
+
+printf "\nfin\n"
+
+# If you want to do only even numbers in a seq
+# You can add an interval to the seq command as the second argument
+# i.e
+# seq 2 2 10
+# will output:
+# 2 4 6 8 10
+
+# To put the output of the script into a file (as opposed to printing to the screen)
+# Run `bash thisFile.sh >> outputfile.txt`
