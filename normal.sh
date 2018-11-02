@@ -23,23 +23,15 @@ runs=10
 sch=static
 
 # Recompile program
-gcc -fopenmp -o blurOMP.out blur.c
+gcc -fopenmp -o blur.out blur.c
 
 # Run programs
-for x in $(seq $tmin $tmax); # For each amount of threads
+
+for z in $(seq 1 $runs);
 do
-  export OMP_NUM_THREADS=$x
-  for y in $(seq $cmin $cmax); # For each compiled file (do by number)
-  do
-    export OMP_SCHEDULE=$sch,$y
-    printf "\nThread count: $x\n"
-    printf "Chunk count: $y\n"
-    for z in $(seq 1 $runs);
-    do
-      ./blurOMP.out
-    done
-  done
+  ./blurOMP.out
 done
+
 
 printf "\nfin\n"
 
