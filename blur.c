@@ -16,7 +16,7 @@ int main (int argc, const char * argv[]) {
 	struct timeval tim;
 	
 	fp = fopen("David.ps", "r");
- 	// comments
+ 
 	while(! feof(fp))
 	{
 		fscanf(fp, "\n%[^\n]", str);
