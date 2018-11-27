@@ -33,12 +33,17 @@ int main (int argc, char * argv[]) {
  *
  * The inserted code must do the following:
  * 	1) Determine the number of processes in use and store this value in the integer nprocs
+ 	nprocs = MPI_Comm_size(MPI_Comm comm, int *size)
+
  * 	2) Determine the rank of the process and store this in the integer rank
+ 	rank = MPI_Comm_rank(MPI_Comm comm, int *rank)
+
  * 	3) Set up a 2D application topology that is as close to square as possible for the
  * 	   given number of processes. To do this you must create the topological communicator
  * 	   new_comm. Store the number of rows in the topology in the integer nprows, 
  * 	   and the number of columns in the integer npcols. Store the process row position 
  * 	   in the topology in the integer myrow, and its column position in the integer mycol.
+ 
  * 	4) Determine the ranks of the four nearest neighbouring processes, and store these in the 
  * 	   integers, left, right, up and down.
  *
