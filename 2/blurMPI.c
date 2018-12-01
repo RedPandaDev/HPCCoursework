@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <math.h>
 
 int main (int argc, char * argv[]) {
 	static int const maxlen = 200, rowsize = 521, colsize = 428, linelen = 12;
@@ -33,19 +34,48 @@ int main (int argc, char * argv[]) {
  *
  * The inserted code must do the following:
  * 	1) Determine the number of processes in use and store this value in the integer nprocs
- 	nprocs = MPI_Comm_size(MPI_Comm comm, int *size)
-
+ */
+ 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+/*
  * 	2) Determine the rank of the process and store this in the integer rank
- 	rank = MPI_Comm_rank(MPI_Comm comm, int *rank)
+  */
+ 	rank = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+ 	/*
 
  * 	3) Set up a 2D application topology that is as close to square as possible for the
  * 	   given number of processes. To do this you must create the topological communicator
  * 	   new_comm. Store the number of rows in the topology in the integer nprows, 
  * 	   and the number of columns in the integer npcols. Store the process row position 
  * 	   in the topology in the integer myrow, and its column position in the integer mycol.
+ */
+ 	npcols = (int)sqrt((double)nprocs);
+ 	nprows = ceil(nprocs/npcols);
+
+	int dim_sizes[]={npcols,nprows};
+	int wrap_around[2];
+	int reorder =1;
+
+
+
+ 	MPI_Cart_create(MPI_COMM_WORLD, 2, dim_sizes, wrap_around, reorder, &new_comm);
+ 	int my_grid_rank;
+ 	int coordinates[2];
+ 	MPI_Comm_rank(new_comm, &my_grid_rank);
+ 	MPI_Cart_coords(new_comm, my_grid_rank,2,coordinates);
+ 	mycol = coordinates[0];
+ 	myrow = coordinates[1];
+
+
+
+/*
  
  * 	4) Determine the ranks of the four nearest neighbouring processes, and store these in the 
  * 	   integers, left, right, up and down.
+  */
+ 	MPI_Cart_shift(new_comm,0,-1,&down,&up);
+ 	MPI_Cart_shift(new_comm,1,-1,&right,&left);
+
+ 	/*
  *
  * Summary of variables to be set in the inserted code (these are all declared above):
  * 	MPI_Comm new_comm
