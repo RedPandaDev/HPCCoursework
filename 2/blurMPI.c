@@ -35,11 +35,11 @@ int main (int argc, char * argv[]) {
  * The inserted code must do the following:
  * 	1) Determine the number of processes in use and store this value in the integer nprocs
  */
- 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 /*
  * 	2) Determine the rank of the process and store this in the integer rank
   */
- 	rank = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
  	/*
 
  * 	3) Set up a 2D application topology that is as close to square as possible for the
@@ -48,22 +48,22 @@ int main (int argc, char * argv[]) {
  * 	   and the number of columns in the integer npcols. Store the process row position 
  * 	   in the topology in the integer myrow, and its column position in the integer mycol.
  */
- 	npcols = (int)sqrt((double)nprocs);
- 	nprows = ceil(nprocs/npcols);
+        npcols = (int)sqrt((double)nprocs);
+ 		nprows = ceil(nprocs/npcols);
 
-	int dim_sizes[]={npcols,nprows};
-	int wrap_around[2];
-	int reorder =1;
+		int dim_sizes[]={npcols,nprows};
+		int wrap_around[2];
+		int reorder =1;
 
 
 
- 	MPI_Cart_create(MPI_COMM_WORLD, 2, dim_sizes, wrap_around, reorder, &new_comm);
- 	int my_grid_rank;
- 	int coordinates[2];
- 	MPI_Comm_rank(new_comm, &my_grid_rank);
- 	MPI_Cart_coords(new_comm, my_grid_rank,2,coordinates);
- 	mycol = coordinates[0];
- 	myrow = coordinates[1];
+	 	MPI_Cart_create(MPI_COMM_WORLD, 2, dim_sizes, wrap_around, reorder, &new_comm);
+	
+	 	int coordinates[2];
+
+	 	MPI_Cart_coords(new_comm, rank,2,coordinates);
+	 	mycol = coordinates[0];
+	 	myrow = coordinates[1];
 
 
 
@@ -72,8 +72,8 @@ int main (int argc, char * argv[]) {
  * 	4) Determine the ranks of the four nearest neighbouring processes, and store these in the 
  * 	   integers, left, right, up and down.
   */
- 	MPI_Cart_shift(new_comm,0,-1,&down,&up);
- 	MPI_Cart_shift(new_comm,1,-1,&right,&left);
+	 	MPI_Cart_shift  (new_comm, 0, -1, &up,  &down);
+   		MPI_Cart_shift  (new_comm, 1, -1, &right, &left);
 
  	/*
  *
@@ -195,6 +195,36 @@ int main (int argc, char * argv[]) {
  * sendbuf and recvbuf arrays (allocated previously) may be used. 
  *
  ***********************************************************************************************/
+		int    i, j;
+		for(j=1;j<=mycolsize;j++){
+            for(i=1;i<=myrowsize;i++){
+               	Rnew[j][i] = R[j][i];
+				MPI_Sendrecv (&R[1][1],  myrowsize, MPI_INT,  down, 111,
+					&Rnew[mycolsize+1][1], myrowsize, MPI_INT, up, 111,
+				  	new_comm, &status);
+				MPI_Sendrecv (&R[mycolsize][1],myrowsize,MPI_INT, up,112,
+					&Rnew[0][1], myrowsize, MPI_INT,down, 112,
+				  	new_comm, &status);
+				for(i=1;i<=mycolsize;i++) sendbuf[i-1] = R[i][1];
+				MPI_Sendrecv (sendbuf, mycolsize, MPI_INT, left, 113,
+				           recvbuf, mycolsize, MPI_INT, right, 113,
+				           new_comm, &status);
+				for(i=1;i<=mycolsize;i++) Rnew[i][myrowsize+1] = recvbuf[i-1];   
+				for(i=1;i<=mycolsize;i++) sendbuf[i-1] = R[i][myrowsize];
+				MPI_Sendrecv (sendbuf, mycolsize, MPI_INT, right, 114,
+				           recvbuf, mycolsize, MPI_INT, left, 114,
+				           new_comm, &status);
+				for(i=1;i<=mycolsize;i++) Rnew[i][0] = recvbuf[i-1];
+				for(j=1;j<=mycolsize;j++){
+					for(i=1;i<=myrowsize;i++)
+					   R[j][i] = 0.25*(Rnew[j][i-1] + Rnew[j][i+1] + Rnew[j-1][i] + Rnew[j+1][i]);
+				}
+			}
+		}
+				
+
+
+
 
 		for(localrow=1;localrow<=myrowsize;localrow++){
                         row = prowsize*myrow + localrow - 1;

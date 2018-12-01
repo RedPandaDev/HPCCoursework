@@ -1,0 +1,6 @@
+MPI_Sendrecv (&oldphi[1][1],  nlocalx, MPI_DOUBLE,  down, 111,
+            &oldphi[nlocaly+1][1], nlocalx, MPI_DOUBLE, up, 111,
+              new_comm, &status);
+         MPI_Sendrecv (&oldphi[nlocaly][1],nlocalx,MPI_DOUBLE, up,112,
+            &oldphi[0][1], nlocalx, MPI_DOUBLE,down, 112,
+              new_comm, &status);
