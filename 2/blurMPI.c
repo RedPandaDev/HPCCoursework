@@ -191,34 +191,42 @@ int main (int argc, char * argv[]) {
  * sendbuf and recvbuf arrays (allocated previously) may be used. 
  *
  ***********************************************************************************************/
-		for(localcol=1;localcol<=mycolsize;localcol++){
-            for(localrow=1;localrow<=myrowsize;localrow++){
+		
+		int nsizex, nsizey, localx, localy;
+		nsizex = (myrowsize-1)/nprows + 1;
+   		nsizey = (mycolsize-1)/npcols + 1;
+
+		localx = (mycol==nprows-1) ? myrowsize-nsizex*(nprows-1) : nsizex;
+   		localy = (myrow==npcols-1) ? mycolsize-nsizey*(npcols-1) : nsizey;
+
+		for(localcol=1;localcol<=localy;localcol++){
+            for(localrow=1;localrow<=localx;localrow++){
                	Rnew[localcol][localrow] = R[localcol][localrow];
-               	if (localcol != (mycolsize-1)){
-				MPI_Sendrecv (&Rnew[localcol][localrow],  myrowsize, MPI_INT,  down, 111,
-					&R[localcol+1][localrow], myrowsize, MPI_INT, up, 111,
+               	if (localcol != (localy-1)){
+				MPI_Sendrecv (&Rnew[localcol][localrow],  localx, MPI_INT,  down, 111,
+					&R[localcol+1][localrow], localx, MPI_INT, up, 111,
 				  	new_comm, &status);
 				}
 				
 				if (localcol != 0){
-				MPI_Sendrecv (&Rnew[localcol][localrow],myrowsize,MPI_INT, up,112,
-					&R[localcol-1][localrow], myrowsize, MPI_INT,down, 112,
+				MPI_Sendrecv (&Rnew[localcol][localrow],localx,MPI_INT, up,112,
+					&R[localcol-1][localrow], localx, MPI_INT,down, 112,
 				  	new_comm, &status);
 				}
-				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = Rnew[localcol][1];
-				if (localrow != (myrowsize-1)){
-				MPI_Sendrecv (sendbuf,  myrowsize, MPI_INT,  right, 111,
-					recvbuf, myrowsize, MPI_INT, left, 111,
+				for(localcol=1;localcol<=localx;localcol++) sendbuf[localcol-1] = Rnew[localcol][1];
+				if (localrow != (localx-1)){
+				MPI_Sendrecv (sendbuf,  localx, MPI_INT,  right, 113,
+					recvbuf, localx, MPI_INT, left, 113,
 				  	new_comm, &status);
 				}
-				for(localcol=1;localcol<=myrowsize;localcol++) Rnew[localcol][mycolsize+1] = recvbuf[localcol-1];   
-         		for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = Rnew[localcol][mycolsize];
+				for(localcol=1;localcol<=localx;localcol++) Rnew[localcol][localy+1] = recvbuf[localcol-1];   
+         		for(localcol=1;localcol<=localx;localcol++) sendbuf[localcol-1] = Rnew[localcol][localy];
 				if (localrow != 0){
-				MPI_Sendrecv (sendbuf,myrowsize,MPI_INT, left,112,
-					recvbuf, myrowsize, MPI_INT,right, 112,
+				MPI_Sendrecv (sendbuf,localx,MPI_INT, left,114,
+					recvbuf, localx, MPI_INT,right, 114,
 				  	new_comm, &status);
 				}
-				for(localcol=1;localcol<=myrowsize;localcol++) Rnew[localcol][0] = recvbuf[localcol-1];
+				for(localcol=1;localcol<=localx;localcol++) Rnew[localcol][0] = recvbuf[localcol-1];
 			}
 		}
 
