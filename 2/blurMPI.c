@@ -52,16 +52,12 @@ int main (int argc, char * argv[]) {
  		nprows = ceil(nprocs/npcols);
 
 		int dim_sizes[]={npcols,nprows};
-		int wrap_around[2];
-		int reorder =1;
+		int coordinates[2], periods[2];
+        periods[0] = periods[1] = 0;
+	 	
+   		MPI_Cart_create (MPI_COMM_WORLD, 2, dim_sizes, periods, 1, &new_comm);
+  		MPI_Cart_coords (new_comm, rank, 2, coordinates);
 
-
-
-	 	MPI_Cart_create(MPI_COMM_WORLD, 2, dim_sizes, wrap_around, reorder, &new_comm);
-	
-	 	int coordinates[2];
-
-	 	MPI_Cart_coords(new_comm, rank,2,coordinates);
 	 	mycol = coordinates[0];
 	 	myrow = coordinates[1];
 
@@ -195,33 +191,37 @@ int main (int argc, char * argv[]) {
  * sendbuf and recvbuf arrays (allocated previously) may be used. 
  *
  ***********************************************************************************************/
-		int    i, j;
-		for(j=1;j<=mycolsize;j++){
-            for(i=1;i<=myrowsize;i++){
-               	Rnew[j][i] = R[j][i];
-				MPI_Sendrecv (&R[1][1],  myrowsize, MPI_INT,  down, 111,
-					&Rnew[mycolsize+1][1], myrowsize, MPI_INT, up, 111,
+		for(localcol=1;localcol<=mycolsize;localcol++){
+            for(localrow=1;localrow<=myrowsize;localrow++){
+               	Rnew[localcol][localrow] = R[localcol][localrow];
+               	if (localcol != (mycolsize-1)){
+				MPI_Sendrecv (&Rnew[localcol][localrow],  myrowsize, MPI_INT,  down, 111,
+					&R[localcol+1][localrow], myrowsize, MPI_INT, up, 111,
 				  	new_comm, &status);
-				MPI_Sendrecv (&R[mycolsize][1],myrowsize,MPI_INT, up,112,
-					&Rnew[0][1], myrowsize, MPI_INT,down, 112,
-				  	new_comm, &status);
-				for(i=1;i<=mycolsize;i++) sendbuf[i-1] = R[i][1];
-				MPI_Sendrecv (sendbuf, mycolsize, MPI_INT, left, 113,
-				           recvbuf, mycolsize, MPI_INT, right, 113,
-				           new_comm, &status);
-				for(i=1;i<=mycolsize;i++) Rnew[i][myrowsize+1] = recvbuf[i-1];   
-				for(i=1;i<=mycolsize;i++) sendbuf[i-1] = R[i][myrowsize];
-				MPI_Sendrecv (sendbuf, mycolsize, MPI_INT, right, 114,
-				           recvbuf, mycolsize, MPI_INT, left, 114,
-				           new_comm, &status);
-				for(i=1;i<=mycolsize;i++) Rnew[i][0] = recvbuf[i-1];
-				for(j=1;j<=mycolsize;j++){
-					for(i=1;i<=myrowsize;i++)
-					   R[j][i] = 0.25*(Rnew[j][i-1] + Rnew[j][i+1] + Rnew[j-1][i] + Rnew[j+1][i]);
 				}
+				
+				if (localcol != 0){
+				MPI_Sendrecv (&Rnew[localcol][localrow],myrowsize,MPI_INT, up,112,
+					&R[localcol-1][localrow], myrowsize, MPI_INT,down, 112,
+				  	new_comm, &status);
+				}
+				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = Rnew[localcol][1];
+				if (localrow != (myrowsize-1)){
+				MPI_Sendrecv (sendbuf,  myrowsize, MPI_INT,  right, 111,
+					recvbuf, myrowsize, MPI_INT, left, 111,
+				  	new_comm, &status);
+				}
+				for(localcol=1;localcol<=myrowsize;localcol++) Rnew[localcol][mycolsize+1] = recvbuf[localcol-1];   
+         		for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = Rnew[localcol][mycolsize];
+				if (localrow != 0){
+				MPI_Sendrecv (sendbuf,myrowsize,MPI_INT, left,112,
+					recvbuf, myrowsize, MPI_INT,right, 112,
+				  	new_comm, &status);
+				}
+				for(localcol=1;localcol<=myrowsize;localcol++) Rnew[localcol][0] = recvbuf[localcol-1];
 			}
 		}
-				
+
 
 
 
