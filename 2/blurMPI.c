@@ -208,61 +208,61 @@ int main (int argc, char * argv[]) {
 				MPI_Sendrecv (&R[myrowsize][1],mycolsize,MPI_INT, up,111,
 					&R[0][1], mycolsize, MPI_INT,down, 111,
 					new_comm, &status);
-				MPI_Sendrecv (&G[myrowsize][1],mycolsize,MPI_INT, up,111,
-					&G[0][1], mycolsize, MPI_INT,down, 111,
+				MPI_Sendrecv (&G[myrowsize][1],mycolsize,MPI_INT, up,112,
+					&G[0][1], mycolsize, MPI_INT,down, 112,
 					new_comm, &status);
-				MPI_Sendrecv (&B[myrowsize][1],mycolsize,MPI_INT, up,111,
-					&B[0][1], mycolsize, MPI_INT,down, 111,
+				MPI_Sendrecv (&B[myrowsize][1],mycolsize,MPI_INT, up,113,
+					&B[0][1], mycolsize, MPI_INT,down, 113,
 					new_comm, &status);
 
 				// // down
-				MPI_Sendrecv (&R[1][1], mycolsize, MPI_INT, down, 112,
-					&R[myrowsize+1][1], mycolsize, MPI_INT, up, 112,
+				MPI_Sendrecv (&R[1][1], mycolsize, MPI_INT, down, 114,
+					&R[myrowsize+1][1], mycolsize, MPI_INT, up, 114,
 					new_comm, &status);
-				MPI_Sendrecv (&G[1][1], mycolsize, MPI_INT, down, 112,
-					&G[myrowsize+1][1], mycolsize, MPI_INT, up, 112,
+				MPI_Sendrecv (&G[1][1], mycolsize, MPI_INT, down, 115,
+					&G[myrowsize+1][1], mycolsize, MPI_INT, up, 115,
 					new_comm, &status);
-				MPI_Sendrecv (&B[1][1], mycolsize, MPI_INT, down, 113,
-					&B[myrowsize+1][1], mycolsize, MPI_INT, up, 113,
+				MPI_Sendrecv (&B[1][1], mycolsize, MPI_INT, down, 116,
+					&B[myrowsize+1][1], mycolsize, MPI_INT, up, 116,
 					new_comm, &status);
 				
 				// left
-				for(localcol=2;localcol<=myrowsize;localcol++) sendbuf[localcol-2] = R[localcol][mycolsize];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, 113,
-					recvbuf, myrowsize, MPI_INT, left, 113,
+				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = R[localcol][mycolsize];
+					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, 117,
+					recvbuf, myrowsize, MPI_INT, left, 117,
 					new_comm, &status);
-				for(localcol=2;localcol<=myrowsize;localcol++) R[localcol][0] = recvbuf[localcol-2];
+				for(localcol=1;localcol<=myrowsize;localcol++) R[localcol][0] = recvbuf[localcol-1];
 
-				for(localcol=2;localcol<=myrowsize;localcol++) sendbuf[localcol-2] = G[localcol][mycolsize];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, 115,
-					recvbuf, myrowsize, MPI_INT, left, 115,
-					new_comm, &status);
-				for(localcol=2;localcol<=myrowsize;localcol++) G[localcol][0] = recvbuf[localcol-2];
-
-				for(localcol=2;localcol<=myrowsize;localcol++) sendbuf[localcol-2] = B[localcol][mycolsize];
+				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = G[localcol][mycolsize];
 					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, 118,
 					recvbuf, myrowsize, MPI_INT, left, 118,
 					new_comm, &status);
-				for(localcol=2;localcol<=myrowsize;localcol++) B[localcol][0] = recvbuf[localcol-2];
+				for(localcol=1;localcol<=myrowsize;localcol++) G[localcol][0] = recvbuf[localcol-1];
+
+				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = B[localcol][mycolsize];
+					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, 119,
+					recvbuf, myrowsize, MPI_INT, left, 119,
+					new_comm, &status);
+				for(localcol=1;localcol<=myrowsize;localcol++) B[localcol][0] = recvbuf[localcol-1];
 
 	// 			//right
-				for(localcol=2;localcol<=myrowsize;localcol++) sendbuf[localcol-2] = R[localcol][1];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, 114,
-					recvbuf, myrowsize, MPI_INT, right,114,
+				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = R[localcol][1];
+					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, 121,
+					recvbuf, myrowsize, MPI_INT, right,121,
 					new_comm, &status);
-				for(localcol=2;localcol<=myrowsize;localcol++) R[localcol][mycolsize+1] = recvbuf[localcol-2];
+				for(localcol=1;localcol<=myrowsize;localcol++) R[localcol][mycolsize+1] = recvbuf[localcol-1];
 
-				for(localcol=2;localcol<=myrowsize;localcol++) sendbuf[localcol-2] = G[localcol][1];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, 119,
-					recvbuf, myrowsize, MPI_INT, right,119,
+				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = G[localcol][1];
+					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, 122,
+					recvbuf, myrowsize, MPI_INT, right,122,
 					new_comm, &status);
-				for(localcol=2;localcol<=myrowsize;localcol++) G[localcol][mycolsize+1] = recvbuf[localcol-2];
+				for(localcol=1;localcol<=myrowsize;localcol++) G[localcol][mycolsize+1] = recvbuf[localcol-1];
 
-				for(localcol=2;localcol<=myrowsize;localcol++) sendbuf[localcol-2] = B[localcol][1];
+				for(localcol=1;localcol<=myrowsize;localcol++) sendbuf[localcol-1] = B[localcol][1];
 					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, 120,
 					recvbuf, myrowsize, MPI_INT, right,120,
 					new_comm, &status);
-				for(localcol=2;localcol<=myrowsize;localcol++) B[localcol][mycolsize+1] = recvbuf[localcol-2];
+				for(localcol=1;localcol<=myrowsize;localcol++) B[localcol][mycolsize+1] = recvbuf[localcol-1];
 	// 		}
 	// }
 
