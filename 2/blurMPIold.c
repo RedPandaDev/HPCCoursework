@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <stdlib.h>
-#include <math.h>
 
 int main (int argc, char * argv[]) {
 	static int const maxlen = 200, rowsize = 521, colsize = 428, linelen = 12;
@@ -34,44 +33,14 @@ int main (int argc, char * argv[]) {
  *
  * The inserted code must do the following:
  * 	1) Determine the number of processes in use and store this value in the integer nprocs
- */
-        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-/*
  * 	2) Determine the rank of the process and store this in the integer rank
-  */
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
- 	/*
-
  * 	3) Set up a 2D application topology that is as close to square as possible for the
  * 	   given number of processes. To do this you must create the topological communicator
  * 	   new_comm. Store the number of rows in the topology in the integer nprows, 
  * 	   and the number of columns in the integer npcols. Store the process row position 
  * 	   in the topology in the integer myrow, and its column position in the integer mycol.
- */
-        npcols = (int)sqrt((double)nprocs);
- 		nprows = ceil(nprocs/npcols);
-
-		int dim_sizes[]={npcols,nprows};
-		int coordinates[2], periods[2];
-        periods[0] = periods[1] = 0;
-	 	
-   		MPI_Cart_create (MPI_COMM_WORLD, 2, dim_sizes, periods, 1, &new_comm);
-  		MPI_Cart_coords (new_comm, rank, 2, coordinates);
-
-	 	mycol = coordinates[0];
-	 	myrow = coordinates[1];
-
-
-
-/*
- 
  * 	4) Determine the ranks of the four nearest neighbouring processes, and store these in the 
  * 	   integers, left, right, up and down.
-  */
-	 	MPI_Cart_shift  (new_comm, 0, -1, &up,  &down);
-   		MPI_Cart_shift  (new_comm, 1, -1, &right, &left);
-
- 	/*
  *
  * Summary of variables to be set in the inserted code (these are all declared above):
  * 	MPI_Comm new_comm
@@ -191,72 +160,6 @@ int main (int argc, char * argv[]) {
  * sendbuf and recvbuf arrays (allocated previously) may be used. 
  *
  ***********************************************************************************************/
-	int j,i;
-		for(j=1;j<=myrowsize;j++){
-			for(i=1;i<=mycolsize;i++){
-				R[j][i] = Rnew[j][i];
-				G[j][i] = Gnew[j][i];
-				B[j][i] = Bnew[j][i];
-				//up
-				MPI_Sendrecv (&R[myrowsize][1],mycolsize,MPI_INT, up,tag,
-					&R[0][1], mycolsize, MPI_INT,down, tag,
-					new_comm, &status);
-				MPI_Sendrecv (&G[myrowsize][1],mycolsize,MPI_INT, up,tag,
-					&G[0][1], mycolsize, MPI_INT,down, tag,
-					new_comm, &status);
-				MPI_Sendrecv (&B[myrowsize][1],mycolsize,MPI_INT, up,tag,
-					&B[0][1], mycolsize, MPI_INT,down, tag,
-					new_comm, &status);
-				//down
-				MPI_Sendrecv (&R[1][1], mycolsize, MPI_INT, down, tag,
-					&R[myrowsize+1][1], mycolsize, MPI_INT, up, tag,
-					new_comm, &status);
-				MPI_Sendrecv (&G[1][1], mycolsize, MPI_INT, down, tag,
-					&G[myrowsize+1][1], mycolsize, MPI_INT, up, tag,
-					new_comm, &status);
-				MPI_Sendrecv (&B[1][1], mycolsize, MPI_INT, down, tag,
-					&B[myrowsize+1][1], mycolsize, MPI_INT, up, tag,
-					new_comm, &status);
-				//left
-				for(i=1;i<=myrowsize;i++) sendbuf[i-1] = R[i][mycolsize];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, tag,
-					recvbuf, myrowsize, MPI_INT, left, tag,
-					new_comm, &status);
-				for(i=1;i<=myrowsize;i++) R[i][0] = recvbuf[i-1];
-
-				for(i=1;i<=myrowsize;i++) sendbuf[i-1] = G[i][mycolsize];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, tag,
-					recvbuf, myrowsize, MPI_INT, left, tag,
-					new_comm, &status);
-				for(i=1;i<=myrowsize;i++) G[i][0] = recvbuf[i-1];
-
-				for(i=1;i<=myrowsize;i++) sendbuf[i-1] = B[i][mycolsize];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, right, tag,
-					recvbuf, myrowsize, MPI_INT, left, tag,
-					new_comm, &status);
-				for(i=1;i<=myrowsize;i++) B[i][0] = recvbuf[i-1];
-
-				//right
-				for(i=1;i<=myrowsize;i++) sendbuf[i-1] = R[i][1];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, tag,
-					recvbuf, myrowsize, MPI_INT, right,tag,
-					new_comm, &status);
-				for(i=1;i<=myrowsize;i++) R[i][mycolsize+1] = recvbuf[i-1];
-
-				for(i=1;i<=myrowsize;i++) sendbuf[i-1] = G[i][1];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, tag,
-					recvbuf, myrowsize, MPI_INT, right,tag,
-					new_comm, &status);
-				for(i=1;i<=myrowsize;i++) G[i][mycolsize+1] = recvbuf[i-1];
-
-				for(i=1;i<=myrowsize;i++) sendbuf[i-1] = B[i][1];
-					MPI_Sendrecv (sendbuf, myrowsize, MPI_INT, left, tag,
-					recvbuf, myrowsize, MPI_INT, right,tag,
-					new_comm, &status);
-				for(i=1;i<=myrowsize;i++) B[i][mycolsize+1] = recvbuf[i-1];
-			}
-	}
-
 
 		for(localrow=1;localrow<=myrowsize;localrow++){
                         row = prowsize*myrow + localrow - 1;
