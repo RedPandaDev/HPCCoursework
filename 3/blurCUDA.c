@@ -2,6 +2,57 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <cuda.h>
+#define NSTEPS 500
+#define TX 16
+#define TY 32
+#define NPTSX 200
+#define NPTSY 200
+
+__global__ 
+void performUpdatesKernel(float *d_phi, float *d_oldphi, int *d_mask, int nptsx, int nptsy)
+{
+    int Row = blockIdx.y*blockDim.y+threadIdx.y;
+    int Col = blockIdx.x*blockDim.x+threadIdx.x;
+    int x = Row*nptsx+Col;
+    int xm = x-nptsx;
+    int xp = x+nptsx;
+
+    if(Col<nptsx && Row<nptsy)
+        if (d_mask[x]) d_phi[x] = 0.25f*(d_oldphi[x+1]+d_oldphi[x-1]+d_oldphi[xp]+d_oldphi[xm]);
+}
+__global__
+void doCopyKernel(float *d_phi, float *d_oldphi, int *d_mask, int nptsx, int nptsy)
+{
+    int Row = blockIdx.y*blockDim.y+threadIdx.y;
+    int Col = blockIdx.x*blockDim.x+threadIdx.x;
+    int x = Row*nptsx+Col;
+
+    if(Col<nptsx && Row<nptsy)
+        if (d_mask[x]) d_oldphi[x] = d_phi[x];
+}
+
+void performUpdates(float *h_phi, float * h_oldphi, int *h_mask, int nptsx, int nptsy, int nsteps)
+{
+    float *d_phi, *d_oldphi;
+    int *d_mask;
+    int k;
+    int sizef = sizeof(float)*nptsx*nptsy;
+    int sizei = sizeof(int)*nptsx*nptsy;
+    cudaMalloc((void **)&d_phi,sizef);
+    cudaMalloc((void **)&d_oldphi,sizef);
+    cudaMalloc((void **)&d_mask,sizei);
+    cudaMemcpy(d_oldphi,h_oldphi,sizef,cudaMemcpyHostToDevice);
+    cudaMemcpy(d_mask,h_mask,sizei,cudaMemcpyHostToDevice);
+    dim3 dimGrid(ceil(nptsx/(float)TX),ceil(nptsy/(float)TY),1);
+    dim3 dimBlock(TX,TY,1);
+    for(k=0;k<nsteps;++k){
+        performUpdatesKernel<<<dimGrid,dimBlock>>>(d_phi,d_oldphi,d_mask,nptsx,nptsy);
+        doCopyKernel<<<dimGrid,dimBlock>>>(d_phi,d_oldphi,d_mask,nptsx,nptsy);
+    } 
+    cudaMemcpy(h_phi,d_oldphi,sizef,cudaMemcpyDeviceToHost);
+    cudaFree(d_phi); cudaFree(d_oldphi); cudaFree(d_mask);
+}
 
 int main (int argc, const char * argv[]) {
 	static int const maxlen = 200, rowsize = 521, colsize = 428, linelen = 12;

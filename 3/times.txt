@@ -1,0 +1,11 @@
+0.040340 seconds elapsed
+0.040391 seconds elapsed
+0.040243 seconds elapsed
+0.040308 seconds elapsed
+0.040515 seconds elapsed
+0.040459 seconds elapsed
+0.040152 seconds elapsed
+0.040884 seconds elapsed
+0.040159 seconds elapsed
+0.040336 seconds elapsed
+0.040873 seconds elapsed
