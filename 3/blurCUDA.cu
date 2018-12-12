@@ -6,7 +6,7 @@
 #include <math.h>
 
 __global__ 
-void doBlur(int *h_Rnew,int *h_R,int *h_Gnew,int *h_G,int *h_Bnew,int *h_B,int colsize,int rowsize){
+void doBlur(int *R,int *h_R,int *G,int *h_G,int *B,int *h_B,int colsize,int rowsize){
 	int row = blockIdx.y*blockDim.y+threadIdx.y;
     int col = blockIdx.x*blockDim.x+threadIdx.x;
 
@@ -14,62 +14,81 @@ void doBlur(int *h_Rnew,int *h_R,int *h_Gnew,int *h_G,int *h_Bnew,int *h_B,int c
 		if(col<colsize && row<rowsize){
 				if (row != 0 && row != (rowsize-1) && col != 0 && col != (colsize-1)){
 
-					h_Rnew[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[(row-1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])/4;
-					h_Gnew[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[(row-1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])/4;
-					h_Bnew[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[(row-1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])/4;
+					R[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[(row-1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])/4;
+					G[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[(row-1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])/4;
+					B[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[(row-1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])/4;
+					// R[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[(row-1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])*0;
+					// G[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[(row-1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])*0;
+					// B[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[(row-1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])*0;
 
 				}
 				else if (row == 0 && col != 0 && col != (colsize-1)){
-					h_Rnew[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])/3;
-					h_Gnew[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])/3;
-					h_Bnew[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])/3;
+					R[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])/3;
+					G[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])/3;
+					B[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])/3;
+					// R[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])*0;
+					// G[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])*0;
+					// B[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])*0;
 					
 				}
 				else if (row == (rowsize-1) && col != 0 && col != (colsize-1)){
-					h_Rnew[row * colsize + col] = (h_R[(row-1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])/3;
-					h_Gnew[row * colsize + col] = (h_G[(row-1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])/3;
-					h_Bnew[row * colsize + col] = (h_B[(row-1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])/3;
+					R[row * colsize + col] = (h_R[(row-1) * colsize + col]+h_R[row * colsize + (col+1)]+h_R[row * colsize + (col-1)])/3;
+					G[row * colsize + col] = (h_G[(row-1) * colsize + col]+h_G[row * colsize + (col+1)]+h_G[row * colsize + (col-1)])/3;
+					B[row * colsize + col] = (h_B[(row-1) * colsize + col]+h_B[row * colsize + (col+1)]+h_B[row * colsize + (col-1)])/3;
 					
 				}
 				else if (col == 0 && row != 0 && row != (rowsize-1)){
-					h_Rnew[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[(row-1) * colsize + col]+h_R[row * colsize + (col+1)])/3;
-					h_Gnew[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[(row-1) * colsize + col]+h_G[row * colsize + (col+1)])/3;
-					h_Bnew[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[(row-1) * colsize + col]+h_B[row * colsize + (col+1)])/3;
+					R[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[(row-1) * colsize + col]+h_R[row * colsize + (col+1)])/3;
+					G[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[(row-1) * colsize + col]+h_G[row * colsize + (col+1)])/3;
+					B[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[(row-1) * colsize + col]+h_B[row * colsize + (col+1)])/3;
 					
 				}
 				else if (col == (colsize-1) && row != 0 && row != (rowsize-1)){
-					h_Rnew[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[(row-1) * colsize + col]+h_R[row * colsize + (col-1)])/3;
+					R[row * colsize + col] = (h_R[(row+1) * colsize + col]+h_R[(row-1) * colsize + col]+h_R[row * colsize + (col-1)])/3;
+					G[row * colsize + col] = (h_G[(row+1) * colsize + col]+h_G[(row-1) * colsize + col]+h_G[row * colsize + (col-1)])/3;
+					B[row * colsize + col] = (h_B[(row+1) * colsize + col]+h_B[(row-1) * colsize + col]+h_B[row * colsize + (col-1)])/3;
 					
 				}
 				else if (row==0 &&col==0){
-					h_Rnew[row * colsize + col] = (h_R[row * colsize + (col+1)]+h_R[(row+1) * colsize + col])/2;
+					R[row * colsize + col] = (h_R[row * colsize + (col+1)]+h_R[(row+1) * colsize + col])/2;
+					G[row * colsize + col] = (h_G[row * colsize + (col+1)]+h_G[(row+1) * colsize + col])/2;
+					B[row * colsize + col] = (h_B[row * colsize + (col+1)]+h_B[(row+1) * colsize + col])/2;
 					
 				}
 				else if (row==0 &&col==(colsize-1)){
-					h_Rnew[row * colsize + col] = (h_R[row * colsize + (col-1)]+h_R[(row+1) * colsize + col])/2;
+					R[row * colsize + col] = (h_R[row * colsize + (col-1)]+h_R[(row+1) * colsize + col])/2;
+					G[row * colsize + col] = (h_G[row * colsize + (col-1)]+h_G[(row+1) * colsize + col])/2;
+					B[row * colsize + col] = (h_B[row * colsize + (col-1)]+h_B[(row+1) * colsize + col])/2;
 					
 				}
 				else if (row==(rowsize-1) &&col==0){
-					h_Rnew[row * colsize + col] = (h_R[row * colsize + (col+1)]+h_R[(row-1) * colsize + col])/2;
+					R[row * colsize + col] = (h_R[row * colsize + (col+1)]+h_R[(row-1) * colsize + col])/2;
+					G[row * colsize + col] = (h_G[row * colsize + (col+1)]+h_G[(row-1) * colsize + col])/2;
+					B[row * colsize + col] = (h_B[row * colsize + (col+1)]+h_B[(row-1) * colsize + col])/2;
 					
 				}
 				else if (row==(rowsize-1) &&col==(colsize-1)){
-					h_Rnew[row * colsize + col] = (h_R[row * colsize + (col-1)]+h_R[(row-1) * colsize + col])/2;
+					R[row * colsize + col] = (h_R[row * colsize + (col-1)]+h_R[(row-1) * colsize + col])/2;
+					G[row * colsize + col] = (h_G[row * colsize + (col-1)]+h_G[(row-1) * colsize + col])/2;
+					B[row * colsize + col] = (h_B[row * colsize + (col-1)]+h_B[(row-1) * colsize + col])/2;
 					
-				}		
+				}	
+
+
 
 
 			}
 		
 }
 __global__ 
-void doCopy(int *h_Rnew,int *h_R,int *h_Gnew,int *h_G,int *h_Bnew,int *h_B,int colsize,int rowsize){
+void doCopy(int *R,int *h_R,int *G,int *h_G,int *B,int *h_B,int colsize,int rowsize){
 	int row = blockIdx.y*blockDim.y+threadIdx.y;
     int col = blockIdx.x*blockDim.x+threadIdx.x;
+
 	if(col<colsize && row<rowsize){
-		h_R[row * colsize + col] = h_Rnew[row * colsize + col];
-		h_G[row * colsize + col] = h_Gnew[row * colsize + col];
-		h_B[row * colsize + col] = h_Bnew[row * colsize + col];
+		h_R[row * colsize + col] = R[row * colsize + col];
+		h_G[row * colsize + col] = G[row * colsize + col];
+		h_B[row * colsize + col] = B[row * colsize + col];
 
 	}
 	
@@ -85,35 +104,15 @@ int main (int argc, const char * argv[]) {
 	char *sptr;
 	int row = 0, col = 0, nblurs, lineno=0, k;
 	struct timeval tim;
-	int *h_R, *h_G, *h_B, *R, *B, *G;
-	int *h_Rnew,*h_Gnew,*h_Bnew;
+	int *R, *B, *G;
    	int sizei; 
    	sizei = sizeof(int)*colsize*rowsize;
 
    	R = (int*)malloc(sizei);
    	G = (int*)malloc(sizei);
    	B = (int*)malloc(sizei);
-
-	h_R = (int*)malloc(sizei);
-	h_Rnew = (int*)malloc(sizei);
-
-	h_G = (int*)malloc(sizei);
-	h_Gnew = (int*)malloc(sizei);
-		
-	h_B = (int*)malloc(sizei);
-	h_Bnew = (int*)malloc(sizei);
-
-	memset(h_R, 0, sizeof h_R);
-	memset(h_Rnew, 0, sizeof h_Rnew);
-
-	memset(h_G, 0, sizeof h_G);
-	memset(h_Gnew, 0, sizeof h_Gnew);
-
-	memset(h_B, 0, sizeof h_B);
-	memset(h_Bnew, 0, sizeof h_Bnew);
-
 	
-	fp = fopen("DavidBlur.ps", "r");
+	fp = fopen("David.ps", "r");
  
 	while(! feof(fp))
 	{
@@ -145,43 +144,72 @@ int main (int argc, const char * argv[]) {
 	}
 	fclose(fp);
 	
-	nblurs = 10;
+	nblurs = 160;
 	gettimeofday(&tim, NULL);
 	double t1=tim.tv_sec+(tim.tv_usec/1000000.0);
 
+	int *Rnew, *Bnew, *Gnew;
+	int *h_R, *h_G, *h_B;
 
-	cudaMalloc((void **)&h_Rnew,sizei);
+	h_R = (int*)malloc(sizei);
+
+	h_G = (int*)malloc(sizei);
+		
+	h_B = (int*)malloc(sizei);
+
+	// memset(h_R, 0, sizeof h_R);
+	// memset(R, 0, sizeof R);
+
+	// memset(h_G, 0, sizeof h_G);
+	// memset(G, 0, sizeof G);
+
+	// memset(h_B, 0, sizeof h_B);
+	// memset(B, 0, sizeof B);
+
+
+	Rnew = (int*)malloc(sizei);
+   	Gnew = (int*)malloc(sizei);
+   	Bnew = (int*)malloc(sizei);
+
+   	int *d_R, *d_G, *d_B;
+
+
 	cudaMalloc((void **)&h_R,sizei);
-
-	cudaMalloc((void **)&h_Gnew,sizei);
 	cudaMalloc((void **)&h_G,sizei);
-
-	cudaMalloc((void **)&h_Bnew,sizei);
 	cudaMalloc((void **)&h_B,sizei);
 
-	// cudaMemcpy(h_R,R,sizei,cudaMemcpyHostToDevice);
-	// cudaMemcpy(h_G,G,sizei,cudaMemcpyHostToDevice);
-	// cudaMemcpy(h_B,B,sizei,cudaMemcpyHostToDevice);
+	cudaMalloc((void **)&d_R,sizei);
+	cudaMalloc((void **)&d_G,sizei);
+	cudaMalloc((void **)&d_B,sizei);
+
+	cudaMemcpy(h_R,R,sizei,cudaMemcpyHostToDevice);
+	cudaMemcpy(h_G,G,sizei,cudaMemcpyHostToDevice);
+	cudaMemcpy(h_B,B,sizei,cudaMemcpyHostToDevice);
 
 
-	dim3 dimGrid(ceil(colsize/(int)16),ceil(rowsize/(int)32),1);
-    dim3 dimBlock(16,32,1);
+	dim3 dimGrid(ceil(colsize/(float)32),ceil(rowsize/(float)32),1);
+    dim3 dimBlock(32,32,1);
 
 
 	for(k=0;k<nblurs;k++){
 
-		doBlur<<<dimGrid,dimBlock>>>(R,h_R,G,h_G,B,h_B,colsize,rowsize);
-        doCopy<<<dimGrid,dimBlock>>>(R,h_R,G,h_G,B,h_B,colsize,rowsize);		
+		doBlur<<<dimGrid,dimBlock>>>(d_R,h_R,d_G,h_G,d_B,h_B,colsize,rowsize);
+        doCopy<<<dimGrid,dimBlock>>>(d_R,h_R,d_G,h_G,d_B,h_B,colsize,rowsize);	
 	}
 
-	// cudaMemcpy(R,h_R,sizei,cudaMemcpyHostToDevice);
-	// cudaMemcpy(G,h_G,sizei,cudaMemcpyHostToDevice);
-	// cudaMemcpy(B,h_B,sizei,cudaMemcpyHostToDevice);
 
 
-	cudaFree(h_Rnew); cudaFree(h_R);
-	cudaFree(h_Gnew); cudaFree(h_G);
-	cudaFree(h_Bnew); cudaFree(h_B);
+	cudaMemcpy(Rnew,h_R,sizei,cudaMemcpyDeviceToHost);
+	cudaMemcpy(Gnew,h_G,sizei,cudaMemcpyDeviceToHost);
+	cudaMemcpy(Bnew,h_B,sizei,cudaMemcpyDeviceToHost);
+
+	cudaFree(h_R);
+	cudaFree(h_G);
+	cudaFree(h_B);
+
+	cudaFree(d_R);
+	cudaFree(d_G);
+	cudaFree(d_B);
 
 	gettimeofday(&tim, NULL);
 	double t2=tim.tv_sec+(tim.tv_usec/1000000.0);
@@ -193,7 +221,7 @@ int main (int argc, const char * argv[]) {
 	fprintf(fout,"\n");
 	for(row=0;row<rowsize;row++){
 		for (col=0;col<colsize;col++){
-			fprintf(fout,"%02x%02x%02x",R[row*colsize+col],G[row*colsize+col],B[row*colsize+col]);
+			fprintf(fout,"%02x%02x%02x",Rnew[row*colsize+col],Gnew[row*colsize+col],Bnew[row*colsize+col]);
 			lineno++;
 			if (lineno==linelen){
 				fprintf(fout,"\n");
